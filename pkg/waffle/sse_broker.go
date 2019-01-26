@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Stateful SSEBroker type. Maintains list of connected clients and channels to
+// SSEBroker Maintains list of connected clients and channels to
 // handle the addition and removal of clients
 type SSEBroker struct {
 	Notifier       chan []byte

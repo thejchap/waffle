@@ -6,18 +6,21 @@ import (
 	"net/http"
 )
 
-// Total capacity of the data store, chosen in tandem with MessageIDPossibilities to
-// provide a reasonable storage size (4096 most recent messages) with a low
-// probability of ID collisions from client-generated IDs
-const MessageCapacity = 4096
+// MessageCapacity Total capacity of the data store,
+// chosen in tandem with MessageIDPossibilities to provide a reasonable storage
+// size (4096 most recent messages) with a low probability of ID collisions
+// from client-generated IDs
+const MessageCapacity int = 4096
 
-// Number of possible message IDs, based on frontend ID generation algorithm
+// MessageIDPossibilities Number of possible message IDs, based on frontend ID
+// generation algorithm
 const MessageIDPossibilities = 68719476736
 
-// Stateful service
+// MessageService Stateful service containing messages data store
 type MessageService struct {
 	messages []Message
 	onCreate func(Message)
+	capacity int
 }
 
 // Create and return a new Service with the store initialized with a maximum
@@ -26,9 +29,10 @@ func newMessageService(onCreate func(Message)) *MessageService {
 	service := &MessageService{
 		messages: make([]Message, 0, MessageCapacity),
 		onCreate: onCreate,
+		capacity: MessageCapacity,
 	}
 
-	prob := collisionProbability()
+	prob := collisionProbability(service)
 
 	log.Print("[waffle/message_service] Initialized")
 	log.Printf("[waffle/message_service] Store capacity: %d messages", MessageCapacity)
@@ -41,7 +45,7 @@ func newMessageService(onCreate func(Message)) *MessageService {
 // created message
 func (s *MessageService) createHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	msg := Message{}
+	var msg Message
 	err := decoder.Decode(&msg)
 
 	if err != nil {
@@ -49,7 +53,7 @@ func (s *MessageService) createHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Truncate the list, keep to only the most recent {MessageCapacity} messages
-	if len(s.messages) == MessageCapacity {
+	if s.isFull() {
 		s.messages = s.messages[1:len(s.messages)]
 	}
 
@@ -73,12 +77,17 @@ func (s *MessageService) indexHandler(w http.ResponseWriter, r *http.Request) {
 
 // Calculate chance of collisions given the maximum capacity of the data store
 // and the number of possible IDs. https://en.wikipedia.org/wiki/Birthday_problem
-func collisionProbability() float32 {
+func collisionProbability(service *MessageService) float32 {
 	var result float32 = 1.0
 
-	for i := 0; i < MessageCapacity; i++ {
+	for i := 0; i < service.capacity; i++ {
 		result *= (1 - float32(i)/MessageIDPossibilities)
 	}
 
 	return 1.0 - result
+}
+
+// Return whether or not the data store is full
+func (s *MessageService) isFull() bool {
+	return len(s.messages) == s.capacity
 }

@@ -90,6 +90,14 @@ For local development
 4. `dep ensure`
 5. `go run cmd/waffle/main.go`
 
+### Linting
+Ensure golint and nodejs/yarn are installed
+1. `yarn`
+2. `make lint`
+
+### Tests
+Run `make test`
+
 ### Documentation
 1. The doc server can be run using `godoc -http=:6060` (assuming go is
    installed) in the application directory

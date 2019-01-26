@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Initializes state and listens on the given host/port
+// Listen Initializes application state state and listens on the given host/port
 func Listen(host string, port string) {
 	sse := newSSEBroker()
 

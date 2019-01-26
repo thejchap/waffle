@@ -6,15 +6,15 @@ import (
 	"github.com/thejchap/waffle/pkg/waffle"
 )
 
-const DefaultHost = "0.0.0.0"
-const DefaultPort = "3000"
+const defaultHost = "0.0.0.0"
+const defaultPort = "3000"
 
 func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = DefaultPort
+		port = defaultPort
 	}
 
-	server.Listen(DefaultHost, port)
+	server.Listen(defaultHost, port)
 }

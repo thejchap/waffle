@@ -33,7 +33,7 @@
      * Setup SSE event source. At this point only handle 1 type of message
     */
     _setupEventSource() {
-      const { state: { messageIds, messages }, endpoints: { sse } } = this;
+      const { endpoints: { sse } } = this;
       const eventSource = new EventSource(sse);
 
       eventSource.onmessage = ({ data }) => {
@@ -215,7 +215,7 @@
       }
     });
 
-    const clientId = await chat.run();
+    await chat.run();
   }
 
   $(document).ready(init);
