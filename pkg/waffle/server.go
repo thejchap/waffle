@@ -11,7 +11,7 @@ import (
 
 // Listen Initializes application state state and listens on the given host/port
 func Listen(host string, port string) {
-	sse := newSSEBroker()
+	sse := startSSEBroker()
 
 	messageService := newMessageService(func(msg Message) {
 		str, _ := json.Marshal(msg)

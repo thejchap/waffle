@@ -18,7 +18,7 @@ type SSEBroker struct {
 
 // Creates a new Handler and starts goroutine to handle incoming events and
 // push them to connected clients
-func newSSEBroker() *SSEBroker {
+func startSSEBroker() *SSEBroker {
 	broker := &SSEBroker{
 		Notifier:       make(chan []byte, 1),
 		newClients:     make(chan chan []byte),
@@ -26,16 +26,8 @@ func newSSEBroker() *SSEBroker {
 		clients:        make(map[chan []byte]bool),
 	}
 
-	// Spawn goroutine that updates state of clients and dispatches events
 	go broker.listen()
-
-	// Temporary solution for dealing with request timeouts on Heroku
-	go func() {
-		for {
-			time.Sleep(time.Second * 10)
-			broker.Notifier <- []byte("{\"keepalive\":true}")
-		}
-	}()
+	go broker.keepalive()
 
 	return broker
 }
@@ -105,5 +97,13 @@ func (broker *SSEBroker) listen() {
 				client <- event
 			}
 		}
+	}
+}
+
+// Prevent request timeouts on Heroku
+func (broker *SSEBroker) keepalive() {
+	for {
+		time.Sleep(time.Second * 10)
+		broker.Notifier <- []byte("{\"keepalive\":true}")
 	}
 }
