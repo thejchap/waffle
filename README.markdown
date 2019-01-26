@@ -53,10 +53,36 @@ lightweight as possible.
 - This app in its current state is not able to be distributed. Messages are
   stored in memory for the duration of the currently running process. To scale
   the application, a shared and durable data store would need to be introduced, as
-  well as a message queue.
+  well as a message queue. However, vertically scaling would be fairly
+  straightforward and could handle quite a bit of traffic (see below)
 - SSE supports multiple named message types and message IDs. TODO: classify
   events (ie. 'message.created') to allow for handling them cleanly on the
   client
+- Currently `index.html` and static assets are being served by the Go
+  application. This is unnecessary because they are static. TODO: Move these to
+  storage and cache via CDN.
+- In theory the number of connected clients is bound by the following
+  factors:
+  1. _Client ID collisions_ - As the number of connected clients grows, the
+     probability of a client ID collision increases because there are currently no
+     coded limits to the number of connected clients. Client ID collisions will
+     not necessarily break the application, but will result in bad UX and a
+     security vulnerability when messages from multiple users are grouped under
+     the same "Sender". This could be easily fixed by adding an additional
+     character (or several characters) to the ID which would increase the number
+     of possible combinations significantly.
+  2. _Memory_
+      - ~4.5kb per goroutine
+      - `/sse` - 2 (for duration of session)
+      - `/api/messages` - 1 (per request)
+      - Message storage - 56b per msg, 4096 capacity ~= 229kb
+      - Estimation
+        - (94 texts sent/received per day / 2) / 24 / 60 / 60 = 0.0005 per user
+          per second
+        - 400000 * _ ~= 200 messages sent per second
+        - ((400000 * 2) + 200) * 4.5 ~= 3.6gb
+        - Sources
+          - https://www.textrequest.com/blog/how-many-texts-people-send-per-day/
 
 ## User Interface
 The UI is a simple, vanilla JS class written using ES6 language features.
@@ -70,6 +96,10 @@ iMessage or Facebook Messenger.
   - Server Sent Events (https://caniuse.com/#feat=eventsource)
   - Web Cryptography (SubtleCrypto) (https://caniuse.com/#feat=cryptography)
   - ES6 classes (https://caniuse.com/#feat=es6-class)
+- Known issues
+  - The SSE connection does not get reopened on mobile after the browser comes
+    back from being in the background. For example switching back and forth
+    between iMessage and the browser will break the real-time functionality
 
 ## Development
 

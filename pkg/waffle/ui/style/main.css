@@ -1,0 +1,34 @@
+body {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+html {
+  height: 100%;
+}
+
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.no-gutters > .col, .no-gutters > [class*="col-"] {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.list-group-item {
+  border: none;
+}
+
+.messages-wrapper {
+  overflow-y: scroll
+}
+
+form.card {
+  border-radius: 0;
+  border: none;
+}
+
+.client {
+  color: #bbb;
+}

@@ -1,13 +1,13 @@
-(() => {
-  const MESSAGES_ENDPOINT = '/api/messages';
-  const SSE_ENDPOINT = '/sse';
-
+(($) => {
   /**
    * Main chat client. Maintains state and also handles UI
    */
   class Client {
-    constructor({ endpoints }) {
-      this.endpoints = endpoints;
+    constructor() {
+      this.ENDPOINTS = {
+        SSE: '/sse',
+        MESSAGES: '/api/messages'
+      };
 
       this.state = {
         messageIds: new Set(),
@@ -18,7 +18,7 @@
     /**
      * Initializes the client, assigns an ID, sets up SSE listener and event
      * bindings, and loads the initial list of messages
-    */
+     */
     async run() {
       this.id = await this._fetchClientId();
 
@@ -31,10 +31,10 @@
 
     /**
      * Setup SSE event source. At this point only handle 1 type of message
-    */
+     */
     _setupEventSource() {
-      const { endpoints: { sse } } = this;
-      const eventSource = new EventSource(sse);
+      const { ENDPOINTS: { SSE } } = this;
+      const eventSource = new EventSource(SSE);
 
       eventSource.onmessage = ({ data }) => {
         const msg = JSON.parse(data);
@@ -56,7 +56,7 @@
 
     /**
      * UI Event handlers
-    */
+     */
     _setupActions() {
       $('form').submit((e) => {
         e.preventDefault();
@@ -71,11 +71,11 @@
     /**
      * Push a newly created message into the local store. If this succeeds, post
      * to the server
-    */
+     */
     async _createMessage(content) {
       const timestamp = new Date().getTime();
       const id = await this._genId();
-      const { id: sender } = this;
+      const { id: sender, ENDPOINTS: { MESSAGES: url } } = this;
       const message = { content, id, timestamp, sender };
 
       if (!this._pushMessage(message)) {
@@ -86,7 +86,7 @@
 
       return $.ajax({
         type: 'POST',
-        url: this.endpoints.messages,
+        url,
         dataType: 'json',
         contentType: 'application/json',
         data: JSON.stringify(message)
@@ -96,7 +96,7 @@
     /**
      * Essentially a session ID. If it exists in localStorage, grab from there.
      * otherwise generate a new one an save in localStorage
-    */
+     */
     async _fetchClientId() {
       const key = 'waffle:clientId';
       const existing = localStorage.getItem(key);
@@ -134,7 +134,7 @@
 
     /**
      * Push a message into the local store unless it exists already
-    */
+     */
     _pushMessage(message) {
       const { state: { messageIds, messages } } = this;
 
@@ -150,13 +150,11 @@
 
     /**
      * Fetch the initial list of messages from the server
-    */
+     */
     _loadMessages() {
-      $.ajax({
-        type: 'GET',
-        url: this.endpoints.messages,
-        dataType: 'json',
-      }).then((messages) => {
+      const { ENDPOINTS: { MESSAGES: url } } = this;
+
+      $.ajax({ type: 'GET', url, dataType: 'json', }).then((messages) => {
         messages.forEach(this._pushMessage.bind(this));
         this._render();
       });
@@ -164,14 +162,14 @@
 
     /**
      * Render the message list UI
-    */
+     */
     _render() {
       const { state: { messages } } = this;
       const $list = $('#messages');
 
       $list.empty();
 
-      messages.sort((a, b) => a.timestamp - b.timestamp).forEach((msg) => {
+      messages.sort((a, b) => a.timestamp - b.timestamp).forEach((msg, i) => {
         const { content, sender } = msg;
         const $msg = $('<li />');
         const $content = $('<div />');
@@ -179,14 +177,14 @@
 
         $client
           .text(sender)
-          .addClass('d-block px-2 mb-1 text-muted');
+          .addClass('d-block px-2 mb-1 mt-2 client');
 
         $content
           .text(content)
           .addClass('d-inline-block px-3 py-2 rounded-pill');
 
         $msg
-          .addClass('list-group-item border-bottom-0 border-top-0')
+          .addClass('list-group-item py-1')
           .append($client)
           .append($content);
 
@@ -194,29 +192,22 @@
         if (msg.sender === this.id) {
           $msg.addClass('text-right');
           $content.addClass('bg-primary text-white');
-          $client.addClass('d-none').removeClass('d-block');
         } else {
           $content.addClass('bg-light');
         }
 
+        // Group together messages from the same sender
+        if (msg.sender === this.id || (i > 0 && msg.sender === messages[i - 1].sender)) {
+          $client.addClass('d-none').removeClass('d-block');
+        }
+
         $list.append($msg);
       });
+
+      $('.messages-wrapper').scrollTop($list.prop('scrollHeight'));
     }
   }
 
-  /**
-   * Bootstrap the app
-  */
-  async function init() {
-    const chat = new Client({
-      endpoints: {
-        messages: MESSAGES_ENDPOINT,
-        sse: SSE_ENDPOINT
-      }
-    });
-
-    await chat.run();
-  }
-
-  $(document).ready(init);
-})();
+  // Bootstrap the app
+  $(() => new Client().run());
+})(window.jQuery);
