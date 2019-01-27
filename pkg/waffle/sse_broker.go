@@ -104,6 +104,6 @@ func (broker *SSEBroker) listen() {
 func (broker *SSEBroker) keepalive() {
 	for {
 		time.Sleep(time.Second * 10)
-		broker.Notifier <- []byte("{\"keepalive\":true}")
+		broker.Notifier <- []byte(`{"keepalive":true}`)
 	}
 }
