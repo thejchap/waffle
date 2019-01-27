@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["golang.org/x/lint"]
 
 [[constraint]]
   name = "github.com/gorilla/mux"
@@ -32,3 +33,11 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/pkg/profile"
+  version = "1.2.1"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/lint"

@@ -61,8 +61,7 @@ lightweight as possible.
 - Currently `index.html` and static assets are being served by the Go
   application. This is unnecessary because they are static. TODO: Move these to
   storage and cache via CDN.
-- In theory the number of connected clients is bound by the following
-  factors:
+- Scaling considerations
   1. _Client ID collisions_ - As the number of connected clients grows, the
      probability of a client ID collision increases because there are currently no
      coded limits to the number of connected clients. Client ID collisions will
@@ -75,12 +74,13 @@ lightweight as possible.
       - ~4.5kb per goroutine
       - `/sse` - 2 (for duration of session)
       - `/api/messages` - 1 (per request)
-      - Message storage - 56b per msg, 4096 capacity ~= 229kb
+      - Message storage - 56b per msg, 4096 capacity ~= 229kb/negligible
+  3. _Traffic_
       - Estimation
-        - (94 texts sent/received per day / 2) / 24 / 60 / 60 = 0.0005 per user
+        - (94 texts sent/received per day / 2) / 24 / 60 / 60 = 0.0005 messages per user
           per second
-        - 400000 * _ ~= 200 messages sent per second
-        - ((400000 * 2) + 200) * 4.5 ~= 3.6gb
+        - 400k users * _ ~= 200 messages sent per second
+        - (400k users * 2 goroutines per SSE connection) * 4.5kb per goroutine ~= 3.6gb
         - Sources
           - https://www.textrequest.com/blog/how-many-texts-people-send-per-day/
 

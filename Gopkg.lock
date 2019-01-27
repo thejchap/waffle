@@ -17,9 +17,42 @@
   revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
   version = "v1.6.2"
 
+[[projects]]
+  digest = "1:cfa0d7741863a0e1d30e0ccdd4b48a96a471cdb47892303de8b92c3713af3e77"
+  name = "github.com/pkg/profile"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5b67d428864e92711fcbd2f8629456121a56d91f"
+  version = "v1.2.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:d7e96538c7070f1839ac583fbed39ab58369b179c4b0db0fbcbaaff9edc4e822"
+  name = "golang.org/x/lint"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8f45f776aaf18cebc8d65861cc70c33c60471952"
+
+[[projects]]
+  branch = "master"
+  digest = "1:da76817708f332e4a6a161581de588bbd420d020e976759408b3321f39f1a48d"
+  name = "golang.org/x/tools"
+  packages = [
+    "go/ast/astutil",
+    "go/gcexportdata",
+    "go/internal/gcimporter",
+    "go/types/typeutil",
+  ]
+  pruneopts = "UT"
+  revision = "d66bd3c5d5a61998d3e35797d266491d11b5e487"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/gorilla/mux"]
+  input-imports = [
+    "github.com/gorilla/mux",
+    "github.com/pkg/profile",
+    "golang.org/x/lint",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
